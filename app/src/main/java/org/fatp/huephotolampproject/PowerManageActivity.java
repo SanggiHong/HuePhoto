@@ -1,18 +1,13 @@
 package org.fatp.huephotolampproject;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.philips.lighting.hue.sdk.PHHueSDK;
-import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHLight;
-import com.philips.lighting.model.PHLightState;
-
 import java.util.List;
 
 public class PowerManageActivity extends Activity {

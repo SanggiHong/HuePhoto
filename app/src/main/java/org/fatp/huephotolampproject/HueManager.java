@@ -1,13 +1,6 @@
 package org.fatp.huephotolampproject;
 
-import static android.R.id.toggle;
-
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
-import android.app.Activity;
-import android.app.Application;
-import android.content.Context;
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.PHSDKListener;
