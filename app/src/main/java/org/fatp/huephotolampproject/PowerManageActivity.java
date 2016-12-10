@@ -22,6 +22,7 @@ public class PowerManageActivity extends Activity {
 
   boolean toggle = false;
   private PHHueSDK phHueSDK;
+  private HueManager hueManager;
 
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
