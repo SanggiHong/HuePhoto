@@ -75,6 +75,7 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
       Log.w(TAG, "Authentication Required.");
       hueManager.getPhHueSDK().startPushlinkAuthentication(accessPoint);
       startActivity(new Intent(BridgeSettingActivity.this, PHPushlinkActivity.class));
+      finish();
     }
 
     @Override
@@ -198,7 +199,7 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
       lastAccessPoint.setIpAddress(prefs.getLastConnectedIPAddress());
 
       if (!hueManager.getPhHueSDK().isAccessPointConnected(lastAccessPoint)) {
-        PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, getApplicationContext());
+        PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, BridgeSettingActivity.this);
         hueManager.getPhHueSDK().connect(lastAccessPoint);
       }
     } else {

@@ -3,7 +3,6 @@ package org.fatp.huephotolampproject;
 /**
  * Created by corona10 on 2016. 6. 25..
  */
-import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -17,6 +16,8 @@ import com.philips.lighting.hue.sdk.PHMessageType;
 import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueParsingError;
+
+import java.util.List;
 
 /**
  * Activity which gives hint for manual pushlink. needs to add <activity
