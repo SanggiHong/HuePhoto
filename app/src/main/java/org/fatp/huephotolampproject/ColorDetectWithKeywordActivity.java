@@ -17,7 +17,6 @@ import com.google.api.services.vision.v1.model.Image;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -85,23 +84,20 @@ public class ColorDetectWithKeywordActivity extends Activity {
   private RotateAnimation rotate;
   private ScaleAnimation scale;
   private AlphaAnimation alpha;
-  private final int KMEANS_ITER = 10;
+  private final int NORMAL=1;
+  private final int PARANOMA=2;
   private Button normalmode2;
   private Button panormamode2;
   private String keyword;
 
-  private ProgressDialog KnnDialog;
-  private ProgressDialog Knn2Dialog;
   private ProgressDialog dialog;
   private ProgressDialog bingDialog;
   private ProgressDialog cloudDialog;
   private TextView keywordView;
-  private Context actvitiyContext;
 
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_color_detect_with_keyword);
-    actvitiyContext = this.getApplicationContext();
 
     rotate = new RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
     rotate.setDuration(700);
@@ -125,7 +121,7 @@ public class ColorDetectWithKeywordActivity extends Activity {
         aniSet.addAnimation(alpha);
         ((Button) findViewById(R.id.okbutton02)).startAnimation(aniSet);
         try {
-          callCloudVision(selected_bitmap, 1);
+          callCloudVision(selected_bitmap, NORMAL);
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -142,7 +138,7 @@ public class ColorDetectWithKeywordActivity extends Activity {
           aniSet.addAnimation(alpha);
           ((Button) findViewById(R.id.okbutton02_sec)).startAnimation(aniSet);
           try {
-            callCloudVision(selected_bitmap, 2);
+            callCloudVision(selected_bitmap, PARANOMA);
           } catch (IOException e) {
             e.printStackTrace();
           }
@@ -174,6 +170,7 @@ public class ColorDetectWithKeywordActivity extends Activity {
     }
   }
 
+
   protected void onDestroy() {
     PHBridge bridge = phHueSDK.getSelectedBridge();
     if (bridge != null) {
@@ -185,6 +182,131 @@ public class ColorDetectWithKeywordActivity extends Activity {
       phHueSDK.disconnect(bridge);
       super.onDestroy();
     }
+  }
+
+
+  public class KmeansTask extends AsyncTask<Void, Void, Void> {
+    private Bitmap bitmap;
+    private final int KMEANS_ITER = 10;
+    private PHHueSDK phHueSDK;
+    private ProgressDialog kmeansDialog;
+    private int mode;
+    private  ArrayList<Rgb>  rgb_list_paranomal;
+
+
+
+
+    public KmeansTask(PHHueSDK phHueSDK,Bitmap bitmap, int mode) {
+      this.phHueSDK=phHueSDK;
+      this.bitmap=bitmap;
+      this.mode=mode;
+    }
+
+    @Override
+    protected Void doInBackground(Void... params) {
+      Bitmap image_bitmap = this.bitmap;
+      PHBridge bridge = phHueSDK.getSelectedBridge();
+
+      List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+      Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
+      kmean.initCLusters();
+      kmean.startKmeans();
+
+
+      if(isNormal()) {
+        Rgb[] rgb_list = kmean.getClusters();
+        doNormalKmeans(bridge, allLights, rgb_list);
+      }
+      else{
+        rgb_list_paranomal = new ArrayList<Rgb>(Arrays.asList(kmean.getClusters()));
+      }
+      return null;
+    }
+
+    private void doNormalKmeans(PHBridge bridge, List<PHLight> allLights, Rgb[] rgb_list) {
+      for (int i = 0; i < allLights.size(); i++) {
+        boolean isFinish = false;
+        while (true) {
+          if (isFinish)
+            break;
+
+          PHLight light = allLights.get(i);
+          Rgb rgb = rgb_list[i];
+          PHLightState lightState = new PHLightState();
+          float xy[] = PHUtilities.calculateXYFromRGB(rgb.getRed(), rgb.getGreen(), rgb.getBlue(), light.getModelNumber());
+          lightState.setOn(true);
+          lightState.setX(xy[0]);
+          lightState.setY(xy[1]);
+          bridge.updateLightState(light, lightState);
+
+          if (light.getLastKnownLightState().getX() == xy[0] && light.getLastKnownLightState().getY() == xy[1]) {
+            Log.d("light", "okay");
+            isFinish = true;
+          }
+        }
+      }
+    }
+
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+      super.onPostExecute(aVoid);
+      if(isNormal()) {
+        Toast.makeText(ColorDetectWithKeywordActivity.this, "처리 완료", Toast.LENGTH_SHORT).show();
+        kmeansDialog.dismiss();
+        kmeansDialog = null;
+      }else {
+        super.onPostExecute(aVoid);
+        kmeansDialog.dismiss();
+        kmeansDialog = null;
+        if (isServiceRunning("org.fatp.huephotolampproject.PanoramaBackground")) {
+          Intent intent = new Intent(ColorDetectWithKeywordActivity.this, PanoramaBackground.class);
+          stopService(intent);
+        }
+        Intent intent = new Intent(ColorDetectWithKeywordActivity.this, PanoramaBackground.class);
+        intent.putExtra("rgbs", rgb_list_paranomal);
+        startService(intent);
+        Toast.makeText(ColorDetectWithKeywordActivity.this, "파노라마 모드 시작", Toast.LENGTH_SHORT).show();
+      }
+    }
+    private Boolean isServiceRunning(String serviceName) {
+      ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+      for (ActivityManager.RunningServiceInfo runningServiceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
+
+        if (serviceName.equals(runningServiceInfo.service.getClassName())) {
+          return true;
+        }
+      }
+      return false;
+    }
+    @Override
+    protected void onPreExecute() {
+      super.onPreExecute();
+      kmeansDialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
+      kmeansDialog.setTitle("k-means 클러스터링");
+      kmeansDialog.setMessage("처리 중 입니다");
+      kmeansDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+      kmeansDialog.show();
+    }
+    @Override
+    protected void onCancelled(Void aVoid) {
+      super.onCancelled(aVoid);
+    }
+
+    @Override
+    protected void onCancelled() {
+      super.onCancelled();
+    }
+
+    @Override
+    protected void onProgressUpdate(Void... values) {
+      super.onProgressUpdate(values);
+    }
+
+    private boolean isNormal() {
+      return this.mode==1;
+    }
+
   }
 
   @Override
@@ -313,6 +435,8 @@ public class ColorDetectWithKeywordActivity extends Activity {
         }
       }
 
+
+
       @Override
       protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
@@ -323,15 +447,8 @@ public class ColorDetectWithKeywordActivity extends Activity {
         bingDialog = null;
         keywordView.setText(keyword);
         keywordView.setTextColor(Color.WHITE);
-//        KmeansTask kmeansTask =new KmeansTask(actvitiyContext, phHueSDK, bitmap ,mode);
-//        kmeansTask.execute();
-        if (mode == 1) {
-          KnnTask knntask = new KnnTask(bitmap);
-          knntask.execute();
-        } else {
-          KmeansTask2 knntask = new KmeansTask2(bitmap);
-          knntask.execute();
-        }
+        KmeansTask kmeansTask =new KmeansTask(phHueSDK, bitmap ,mode);
+        kmeansTask.execute();
       }
 
       protected void onPostExecute(String result) {
@@ -424,7 +541,7 @@ public class ColorDetectWithKeywordActivity extends Activity {
         cloudDialog.dismiss();
         cloudDialog = null;
         try {
-          AsyncTask task = SearchPhotos(found, mode);
+          AsyncTask<Void, Void, Bitmap> task = SearchPhotos(found, mode);
           task.execute();
         } catch (IOException e) {
           e.printStackTrace();
@@ -437,8 +554,6 @@ public class ColorDetectWithKeywordActivity extends Activity {
       }
     }.execute();
   }
-
-
 
   public Bitmap scaleBitmapDown(Bitmap bitmap, int maxDimension) {
 
@@ -474,148 +589,6 @@ public class ColorDetectWithKeywordActivity extends Activity {
     return result;
   }
 
-  private class KnnTask extends AsyncTask<Void, Void, Void> {
-
-    private Bitmap bitmap;
-    public KnnTask(Bitmap bitmap)
-    {
-      this.bitmap = bitmap;
-    }
-    @Override
-    protected Void doInBackground(Void... voids) {
-      Bitmap image_bitmap = this.bitmap;
-      PHBridge bridge = phHueSDK.getSelectedBridge();
-
-      List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-      Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
-      kmean.initCLusters();
-      kmean.startKmeans();
-      Rgb[] rgb_list = kmean.getClusters();
-
-      for (int i = 0; i < allLights.size(); i++) {
-        boolean isFinish = false;
-        while (true) {
-          if (isFinish)
-            break;
-
-          PHLight light = allLights.get(i);
-          Rgb rgb = rgb_list[i];
-          PHLightState lightState = new PHLightState();
-          float xy[] = PHUtilities.calculateXYFromRGB(rgb.getRed(), rgb.getGreen(), rgb.getBlue(), light.getModelNumber());
-          lightState.setOn(true);
-          lightState.setX(xy[0]);
-          lightState.setY(xy[1]);
-          bridge.updateLightState(light, lightState);
-
-          if (light.getLastKnownLightState().getX() == xy[0] && light.getLastKnownLightState().getY() == xy[1]) {
-            Log.d("light", "okay");
-            isFinish = true;
-          }
-        }
-      }
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-      super.onPostExecute(aVoid);
-      Toast.makeText(ColorDetectWithKeywordActivity.this, "처리 완료", Toast.LENGTH_SHORT).show();
-      KnnDialog.dismiss();
-      KnnDialog = null;
-    }
-
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
-      KnnDialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
-      KnnDialog.setTitle("k-means 클러스터링");
-      KnnDialog.setMessage("처리 중 입니다");
-      KnnDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-      KnnDialog.show();
-    }
-
-
-    @Override
-    protected void onCancelled(Void aVoid) {
-      super.onCancelled(aVoid);
-    }
-
-    @Override
-    protected void onCancelled() {
-      super.onCancelled();
-    }
-
-    @Override
-    protected void onProgressUpdate(Void... values) {
-      super.onProgressUpdate(values);
-    }
-  }
-
-  private class KmeansTask2 extends AsyncTask<Void, Void, Void> {
-    private ArrayList<Rgb> rgb_list;
-    private Bitmap bitmap;
-    public KmeansTask2()
-    {
-
-    }
-    public KmeansTask2(Bitmap bitmap)
-    {
-      this.bitmap = bitmap;
-    }
-    @Override
-    protected Void doInBackground(Void... voids) {
-      Bitmap image_bitmap = this.bitmap;
-      PHBridge bridge = phHueSDK.getSelectedBridge();
-      List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-      Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
-      kmean.initCLusters();
-      kmean.startKmeans();
-      rgb_list = new ArrayList<Rgb>(Arrays.asList(kmean.getClusters()));
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-      super.onPostExecute(aVoid);
-      Knn2Dialog.dismiss();
-      Knn2Dialog = null;
-      if (isServiceRunning("org.fatp.huephotolampproject.PanoramaBackground")) {
-        Intent intent = new Intent(ColorDetectWithKeywordActivity.this, PanoramaBackground.class);
-        stopService(intent);
-      }
-      Intent intent = new Intent(ColorDetectWithKeywordActivity.this, PanoramaBackground.class);
-      intent.putExtra("rgbs", rgb_list);
-      startService(intent);
-      Toast.makeText(ColorDetectWithKeywordActivity.this, "파노라마 모드 시작", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
-      Knn2Dialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
-      Knn2Dialog.setTitle("k-means 클러스터링");
-      Knn2Dialog.setMessage("처리 중 입니다");
-      Knn2Dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-      Knn2Dialog.show();
-    }
-
-
-    @Override
-    protected void onCancelled(Void aVoid) {
-      super.onCancelled(aVoid);
-    }
-
-    @Override
-    protected void onCancelled() {
-      super.onCancelled();
-    }
-
-    @Override
-    protected void onProgressUpdate(Void... values) {
-      super.onProgressUpdate(values);
-    }
-  }
-
   private Boolean isServiceRunning(String serviceName) {
     ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
     for (ActivityManager.RunningServiceInfo runningServiceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
@@ -627,3 +600,5 @@ public class ColorDetectWithKeywordActivity extends Activity {
     return false;
   }
 }
+
+
