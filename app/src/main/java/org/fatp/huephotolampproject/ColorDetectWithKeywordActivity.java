@@ -17,6 +17,7 @@ import com.google.api.services.vision.v1.model.Image;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -72,14 +73,11 @@ import cz.msebera.android.httpclient.util.EntityUtils;
 import ml.Kmeans;
 import ml.Rgb;
 
-/**
- * Created by HamHyunWoong on 2016-06-23.
- */
+
 public class ColorDetectWithKeywordActivity extends Activity {
 
-  private static final String CLOUD_VISION_API_KEY = "AIzaSyAbyA-u-ZNw01KFWzAKoLBgXLN1HPEiHqE";
+  private static final String CLOUD_VISION_API_KEY = "AIzaSyDRKw0iBD2rfFic_HqUUQZKY-tBLfdc87E";
   private static final String TAG = "SelectActivity2";
-  private final int KMEANS_ITER = 10;
   private PHHueSDK phHueSDK;
   private Bitmap selected_bitmap = null;
 
@@ -87,6 +85,7 @@ public class ColorDetectWithKeywordActivity extends Activity {
   private RotateAnimation rotate;
   private ScaleAnimation scale;
   private AlphaAnimation alpha;
+  private final int KMEANS_ITER = 10;
   private Button normalmode2;
   private Button panormamode2;
   private String keyword;
@@ -97,10 +96,12 @@ public class ColorDetectWithKeywordActivity extends Activity {
   private ProgressDialog bingDialog;
   private ProgressDialog cloudDialog;
   private TextView keywordView;
+  private Context actvitiyContext;
 
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_color_detect_with_keyword);
+    actvitiyContext = this.getApplicationContext();
 
     rotate = new RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
     rotate.setDuration(700);
@@ -217,145 +218,142 @@ public class ColorDetectWithKeywordActivity extends Activity {
       }
     }
   }
+  private AsyncTask SearchPhotos(final String keyword, final int mode) throws IOException {
+    return new AsyncTask<Void, Void, Bitmap>() {
+      private String APILink = "https://api.datamarket.azure.com/Bing/Search/v1/"; //Query=%27girl%27&Market=%27en-us%27&ImageFilters=%27Size%3ASmall%27&format=json&stop=1
+      private String API_KEY = "FEqHAQ/dk0+ex9gY0Lk0C76J0aLw6G6OVhUgmI3im1Y";
+      private String[] SECTION = {"Image"};
 
-  public class BingAsyncTask extends AsyncTask<Void, Void, Bitmap> {
+      @Override
+      protected Bitmap doInBackground(Void... params) {
+        String result = "";
+        HttpClient httpClient = new DefaultHttpClient();
+        ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+        nameValuePairs.add(new BasicNameValuePair("Query", "'" + keyword + "'"));
+        nameValuePairs.add(new BasicNameValuePair("Market", "'en-US'"));
+        nameValuePairs.add(new BasicNameValuePair("Adult", "'Moderate'"));
+        nameValuePairs.add(new BasicNameValuePair("ImageFilters", "'Size:Small'"));
 
-    private String APILink = "https://api.datamarket.azure.com/Bing/Search/v1/"; //Query=%27girl%27&Market=%27en-us%27&ImageFilters=%27Size%3ASmall%27&format=json&stop=1
-    private String API_KEY = "FEqHAQ/dk0+ex9gY0Lk0C76J0aLw6G6OVhUgmI3im1Y";
-    private String[] SECTION = {"Image"};
-    private String keyword;
-    private int mode;
+        String paramsString = URLEncodedUtils.format(nameValuePairs, "UTF-8");
+        HttpGet httpget = new HttpGet(APILink + SECTION[0] + "?" + paramsString + "&$format=json&$top=1");
+        String auth = API_KEY + ":" + API_KEY;
+        String encodedAuth = Base64.encodeToString(auth.getBytes(), Base64.NO_WRAP);
+        Log.e("", encodedAuth);
+        httpget.addHeader("Authorization", "Basic " + encodedAuth);
 
-    public BingAsyncTask() {
-      super();
-    }
-
-    public BingAsyncTask(String keyword, int mode) {
-      super();
-      this.keyword = keyword;
-      this.mode = mode;
-    }
-
-    @Override
-    protected Bitmap doInBackground(Void... params) {
-      String result = "";
-      HttpClient httpClient = new DefaultHttpClient();
-      ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-      nameValuePairs.add(new BasicNameValuePair("Query", "'" + keyword + "'"));
-      nameValuePairs.add(new BasicNameValuePair("Market", "'en-US'"));
-      nameValuePairs.add(new BasicNameValuePair("Adult", "'Moderate'"));
-      nameValuePairs.add(new BasicNameValuePair("ImageFilters", "'Size:Small'"));
-
-      String paramsString = URLEncodedUtils.format(nameValuePairs, "UTF-8");
-      HttpGet httpget = new HttpGet(APILink + SECTION[0] + "?" + paramsString + "&$format=json&$top=1");
-      String auth = API_KEY + ":" + API_KEY;
-      String encodedAuth = Base64.encodeToString(auth.getBytes(), Base64.NO_WRAP);
-      Log.e("", encodedAuth);
-      httpget.addHeader("Authorization", "Basic " + encodedAuth);
-
-      HttpResponse response = null;
-      try {
-        response = httpClient.execute(httpget);
-      } catch (IOException e1) {
-        e1.printStackTrace();
-      }
-
-      HttpEntity entity = response.getEntity();
-      if (entity != null) {
-        InputStream inputStream = null;
+        HttpResponse response = null;
         try {
-          inputStream = entity.getContent();
-        } catch (IllegalStateException e) {
-          e.printStackTrace();
-        } catch (IOException e) {
-          e.printStackTrace();
+          response = httpClient.execute(httpget);
+        } catch (IOException e1) {
+          e1.printStackTrace();
         }
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-        String line;
-        try {
-          while ((line = bufferedReader.readLine()) != null) {
-            result += line;
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
 
-      //Extract link from JSON
-      //String to Json
-      JSONObject jsonObject = null;
-      if (JSONValue.isValidJson(result)) {
-        jsonObject = (JSONObject) JSONValue.parse(result);
-      }
-
-      jsonObject = (JSONObject) jsonObject.get("d");
-      jsonObject = (JSONObject) ((JSONArray) jsonObject.get("results")).get(0);
-      jsonObject = (JSONObject) jsonObject.get("Thumbnail");
-      Log.e(". ", jsonObject.toString() + " . ");
-      String url = (String) jsonObject.get("MediaUrl");
-      Log.e(". ", url + " . ");
-
-      Bitmap bitmap = null;
-      try {
-        bitmap = downloadBitmap(url);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      return bitmap;
-    }
-
-
-    private Bitmap downloadBitmap(String url) throws IOException {
-      HttpUriRequest request = new HttpGet(url.toString());
-      HttpClient httpClient = new DefaultHttpClient();
-      HttpResponse response = httpClient.execute(request);
-
-      StatusLine statusLine = response.getStatusLine();
-      int statusCode = statusLine.getStatusCode();
-      if (statusCode == 200) {
         HttpEntity entity = response.getEntity();
-        byte[] bytes = EntityUtils.toByteArray(entity);
+        if (entity != null) {
+          InputStream inputStream = null;
+          try {
+            inputStream = entity.getContent();
+          } catch (IllegalStateException e) {
+            e.printStackTrace();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+          String line;
+          try {
+            while ((line = bufferedReader.readLine()) != null) {
+              result += line;
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
 
-        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0,
-            bytes.length);
+        //Extract link from JSON
+        //String to Json
+        JSONObject jsonObject = null;
+        if (JSONValue.isValidJson(result)) {
+          jsonObject = (JSONObject) JSONValue.parse(result);
+        }
+
+        jsonObject = (JSONObject) jsonObject.get("d");
+        jsonObject = (JSONObject) ((JSONArray) jsonObject.get("results")).get(0);
+        jsonObject = (JSONObject) jsonObject.get("Thumbnail");
+        Log.e(". ", jsonObject.toString() + " . ");
+        String url = (String) jsonObject.get("MediaUrl");
+        Log.e(". ", url + " . ");
+
+        Bitmap bitmap = null;
+        try {
+          bitmap = downloadBitmap(url);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
         return bitmap;
-      } else {
-        throw new IOException("Download failed, HTTP response code "
-            + statusCode + " - " + statusLine.getReasonPhrase());
       }
-    }
 
-    @Override
-    protected void onPostExecute(Bitmap bitmap) {
-      super.onPostExecute(bitmap);
-      ImageView image = (ImageView) findViewById(R.id.imageview2);
-      image.setImageBitmap(bitmap);
-      selected_bitmap = bitmap;
-      bingDialog.dismiss();
-      bingDialog = null;
-      keywordView.setText(this.keyword);
-      keywordView.setTextColor(Color.WHITE);
-      if (mode == 1) {
-        KnnTask knntask = new KnnTask(bitmap);
-        knntask.execute();
-      } else {
-        KnnTask2 knntask = new KnnTask2(bitmap);
-        knntask.execute();
+
+      private Bitmap downloadBitmap(String url) throws IOException {
+        HttpUriRequest request = new HttpGet(url.toString());
+        HttpClient httpClient = new DefaultHttpClient();
+        HttpResponse response = httpClient.execute(request);
+
+        StatusLine statusLine = response.getStatusLine();
+        int statusCode = statusLine.getStatusCode();
+        if (statusCode == 200) {
+          HttpEntity entity = response.getEntity();
+          byte[] bytes = EntityUtils.toByteArray(entity);
+
+          Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0,
+                  bytes.length);
+          return bitmap;
+        } else {
+          throw new IOException("Download failed, HTTP response code "
+                  + statusCode + " - " + statusLine.getReasonPhrase());
+        }
       }
-    }
 
-    protected void onPostExecute(String result) {
-      dialog.dismiss();
-    }
+      @Override
+      protected void onPostExecute(Bitmap bitmap) {
+        super.onPostExecute(bitmap);
+        ImageView image = (ImageView) findViewById(R.id.imageview2);
+        image.setImageBitmap(bitmap);
+        selected_bitmap = bitmap;
+        bingDialog.dismiss();
+        bingDialog = null;
+        keywordView.setText(keyword);
+        keywordView.setTextColor(Color.WHITE);
+        KmeansTask kmeansTask =new KmeansTask(actvitiyContext, phHueSDK, bitmap ,mode);
+        kmeansTask.execute();
+        /*if (mode == 1) {
+          KnnTask knntask = new KnnTask(bitmap);
+          knntask.execute();
+        } else {
+          KmeansTask2 knntask = new KmeansTask2(bitmap);
+          knntask.execute();
+        }*/
+      }
 
-    protected void onPreExecute() {
-      super.onPreExecute();
-      bingDialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
-      bingDialog.setTitle("Bing search");
-      bingDialog.setMessage(keyword + "를 탐색 중 입니다.");
-      bingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-      bingDialog.show();
-    }
+      protected void onPostExecute(String result) {
+        dialog.dismiss();
+      }
+
+      protected void onPreExecute() {
+        super.onPreExecute();
+        bingDialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
+        bingDialog.setTitle("Bing search");
+        bingDialog.setMessage(keyword + "를 탐색 중 입니다.");
+        bingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        bingDialog.show();
+      }
+    };
+  }
+  private void searchKeyword() {
+    cloudDialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
+    cloudDialog.setTitle("Cloud Vision");
+    cloudDialog.setMessage("사진 속 물체를 탐색 중 입니다.");
+    cloudDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+    cloudDialog.show();
   }
 
   private void callCloudVision(final Bitmap bitmap, final int mode) throws IOException {
@@ -425,20 +423,22 @@ public class ColorDetectWithKeywordActivity extends Activity {
         super.onPostExecute(result);
         cloudDialog.dismiss();
         cloudDialog = null;
-        BingAsyncTask task = new BingAsyncTask(found, mode);
-        task.execute();
+        try {
+          AsyncTask task = SearchPhotos(found, mode);
+          task.execute();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
 
       protected void onPreExecute() {
         super.onPreExecute();
-        cloudDialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
-        cloudDialog.setTitle("Cloud Vision");
-        cloudDialog.setMessage("사진 속 물체를 탐색 중 입니다.");
-        cloudDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        cloudDialog.show();
+        searchKeyword();
       }
     }.execute();
   }
+
+
 
   public Bitmap scaleBitmapDown(Bitmap bitmap, int maxDimension) {
 
@@ -474,152 +474,147 @@ public class ColorDetectWithKeywordActivity extends Activity {
     return result;
   }
 
-  private class KnnTask extends AsyncTask<Void, Void, Void> {
-
-    private Bitmap bitmap;
-    public KnnTask()
-    {
-
-    }
-    public KnnTask(Bitmap bitmap)
-    {
-      this.bitmap = bitmap;
-    }
-    @Override
-    protected Void doInBackground(Void... voids) {
-      Bitmap image_bitmap = this.bitmap;
-      PHBridge bridge = phHueSDK.getSelectedBridge();
-
-      List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-      Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
-      kmean.initCLusters();
-      kmean.startKmeans();
-      Rgb[] rgb_list = kmean.getClusters();
-
-      for (int i = 0; i < allLights.size(); i++) {
-        boolean isFinish = false;
-        while (true) {
-          if (isFinish)
-            break;
-
-          PHLight light = allLights.get(i);
-          Rgb rgb = rgb_list[i];
-          PHLightState lightState = new PHLightState();
-          float xy[] = PHUtilities.calculateXYFromRGB(rgb.getRed(), rgb.getGreen(), rgb.getBlue(), light.getModelNumber());
-          lightState.setOn(true);
-          lightState.setX(xy[0]);
-          lightState.setY(xy[1]);
-          bridge.updateLightState(light, lightState);
-
-          if (light.getLastKnownLightState().getX() == xy[0] && light.getLastKnownLightState().getY() == xy[1]) {
-            Log.d("light", "okay");
-            isFinish = true;
-          }
-        }
-      }
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-      super.onPostExecute(aVoid);
-      Toast.makeText(ColorDetectWithKeywordActivity.this, "처리 완료", Toast.LENGTH_SHORT).show();
-      KnnDialog.dismiss();
-      KnnDialog = null;
-
-    }
-
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
-      KnnDialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
-      KnnDialog.setTitle("k-means 클러스터링");
-      KnnDialog.setMessage("처리 중 입니다");
-      KnnDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-      KnnDialog.show();
-    }
-
-
-    @Override
-    protected void onCancelled(Void aVoid) {
-      super.onCancelled(aVoid);
-    }
-
-    @Override
-    protected void onCancelled() {
-      super.onCancelled();
-    }
-
-    @Override
-    protected void onProgressUpdate(Void... values) {
-      super.onProgressUpdate(values);
-    }
-  }
-
-  private class KnnTask2 extends AsyncTask<Void, Void, Void> {
-    private ArrayList<Rgb> rgb_list;
-    private Bitmap bitmap;
-    public KnnTask2()
-    {
-
-    }
-    public KnnTask2(Bitmap bitmap)
-    {
-      this.bitmap = bitmap;
-    }
-    @Override
-    protected Void doInBackground(Void... voids) {
-      Bitmap image_bitmap = this.bitmap;
-      PHBridge bridge = phHueSDK.getSelectedBridge();
-      List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-      Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
-      kmean.initCLusters();
-      kmean.startKmeans();
-      rgb_list = new ArrayList<Rgb>(Arrays.asList(kmean.getClusters()));
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-      super.onPostExecute(aVoid);
-      Knn2Dialog.dismiss();
-      Knn2Dialog = null;
-      if (isServiceRunning("org.fatp.huephotolampproject.PanoramaBackground")) {
-        Intent intent = new Intent(ColorDetectWithKeywordActivity.this, PanoramaBackground.class);
-        stopService(intent);
-      }
-      Intent intent = new Intent(ColorDetectWithKeywordActivity.this, PanoramaBackground.class);
-      intent.putExtra("rgbs", rgb_list);
-      startService(intent);
-      Toast.makeText(ColorDetectWithKeywordActivity.this, "파노라마 모드 시작", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
-      Knn2Dialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
-      Knn2Dialog.setTitle("k-means 클러스터링");
-      Knn2Dialog.setMessage("처리 중 입니다");
-      Knn2Dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-      Knn2Dialog.show();
-    }
-
-
-    @Override
-    protected void onCancelled(Void aVoid) {
-      super.onCancelled(aVoid);
-    }
-
-    @Override
-    protected void onCancelled() {
-      super.onCancelled();
-    }
-
-    @Override
-    protected void onProgressUpdate(Void... values) {
-      super.onProgressUpdate(values);
-    }
-  }
+//  private class KnnTask extends AsyncTask<Void, Void, Void> {
+//
+//    private Bitmap bitmap;
+//    public KnnTask(Bitmap bitmap)
+//    {
+//      this.bitmap = bitmap;
+//    }
+//    @Override
+//    protected Void doInBackground(Void... voids) {
+//      Bitmap image_bitmap = this.bitmap;
+//      PHBridge bridge = phHueSDK.getSelectedBridge();
+//
+//      List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+//      Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
+//      kmean.initCLusters();
+//      kmean.startKmeans();
+//      Rgb[] rgb_list = kmean.getClusters();
+//
+//      for (int i = 0; i < allLights.size(); i++) {
+//        boolean isFinish = false;
+//        while (true) {
+//          if (isFinish)
+//            break;
+//
+//          PHLight light = allLights.get(i);
+//          Rgb rgb = rgb_list[i];
+//          PHLightState lightState = new PHLightState();
+//          float xy[] = PHUtilities.calculateXYFromRGB(rgb.getRed(), rgb.getGreen(), rgb.getBlue(), light.getModelNumber());
+//          lightState.setOn(true);
+//          lightState.setX(xy[0]);
+//          lightState.setY(xy[1]);
+//          bridge.updateLightState(light, lightState);
+//
+//          if (light.getLastKnownLightState().getX() == xy[0] && light.getLastKnownLightState().getY() == xy[1]) {
+//            Log.d("light", "okay");
+//            isFinish = true;
+//          }
+//        }
+//      }
+//      return null;
+//    }
+//
+//    @Override
+//    protected void onPostExecute(Void aVoid) {
+//      super.onPostExecute(aVoid);
+//      Toast.makeText(ColorDetectWithKeywordActivity.this, "처리 완료", Toast.LENGTH_SHORT).show();
+//      KnnDialog.dismiss();
+//      KnnDialog = null;
+//    }
+//
+//    @Override
+//    protected void onPreExecute() {
+//      super.onPreExecute();
+//      KnnDialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
+//      KnnDialog.setTitle("k-means 클러스터링");
+//      KnnDialog.setMessage("처리 중 입니다");
+//      KnnDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+//      KnnDialog.show();
+//    }
+//
+//
+//    @Override
+//    protected void onCancelled(Void aVoid) {
+//      super.onCancelled(aVoid);
+//    }
+//
+//    @Override
+//    protected void onCancelled() {
+//      super.onCancelled();
+//    }
+//
+//    @Override
+//    protected void onProgressUpdate(Void... values) {
+//      super.onProgressUpdate(values);
+//    }
+//  }
+//
+//  private class KmeansTask2 extends AsyncTask<Void, Void, Void> {
+//    private ArrayList<Rgb> rgb_list;
+//    private Bitmap bitmap;
+//    public KmeansTask2()
+//    {
+//
+//    }
+//    public KmeansTask2(Bitmap bitmap)
+//    {
+//      this.bitmap = bitmap;
+//    }
+//    @Override
+//    protected Void doInBackground(Void... voids) {
+//      Bitmap image_bitmap = this.bitmap;
+//      PHBridge bridge = phHueSDK.getSelectedBridge();
+//      List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+//      Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
+//      kmean.initCLusters();
+//      kmean.startKmeans();
+//      rgb_list = new ArrayList<Rgb>(Arrays.asList(kmean.getClusters()));
+//      return null;
+//    }
+//
+//    @Override
+//    protected void onPostExecute(Void aVoid) {
+//      super.onPostExecute(aVoid);
+//      Knn2Dialog.dismiss();
+//      Knn2Dialog = null;
+//      if (isServiceRunning("org.fatp.huephotolampproject.PanoramaBackground")) {
+//        Intent intent = new Intent(ColorDetectWithKeywordActivity.this, PanoramaBackground.class);
+//        stopService(intent);
+//      }
+//      Intent intent = new Intent(ColorDetectWithKeywordActivity.this, PanoramaBackground.class);
+//      intent.putExtra("rgbs", rgb_list);
+//      startService(intent);
+//      Toast.makeText(ColorDetectWithKeywordActivity.this, "파노라마 모드 시작", Toast.LENGTH_SHORT).show();
+//    }
+//
+//    @Override
+//    protected void onPreExecute() {
+//      super.onPreExecute();
+//      Knn2Dialog = new ProgressDialog(ColorDetectWithKeywordActivity.this);
+//      Knn2Dialog.setTitle("k-means 클러스터링");
+//      Knn2Dialog.setMessage("처리 중 입니다");
+//      Knn2Dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+//      Knn2Dialog.show();
+//    }
+//
+//
+//    @Override
+//    protected void onCancelled(Void aVoid) {
+//      super.onCancelled(aVoid);
+//    }
+//
+//    @Override
+//    protected void onCancelled() {
+//      super.onCancelled();
+//    }
+//
+//    @Override
+//    protected void onProgressUpdate(Void... values) {
+//      super.onProgressUpdate(values);
+//    }
+//  }
 
   private Boolean isServiceRunning(String serviceName) {
     ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);

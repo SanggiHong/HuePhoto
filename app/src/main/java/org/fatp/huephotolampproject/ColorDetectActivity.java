@@ -3,6 +3,7 @@ package org.fatp.huephotolampproject;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
@@ -48,6 +49,9 @@ public class ColorDetectActivity extends Activity {
   private PanoramaBackground background_service;
   private Button normalmode;
   private Button panormamode;
+  private final int NORMAL=1;
+  private final int PARANOMA=2;
+  private Context actvitiyContext;
   RotateAnimation rotate;
   ScaleAnimation scale;
   AlphaAnimation alpha;
@@ -66,6 +70,7 @@ public class ColorDetectActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_color_detect);
     phHueSDK = PHHueSDK.create();
+    actvitiyContext = this.getApplicationContext();
 
     rotate = new RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
     rotate.setDuration(700);
@@ -90,8 +95,10 @@ public class ColorDetectActivity extends Activity {
         ((Button)findViewById(R.id.okbutton01)).startAnimation(aniSet);
 
         if (selected_bitmap != null) {
-          KnnTask task = new KnnTask();
-          task.execute();
+//          KnnTask task = new KnnTask();
+//          task.execute();
+          KmeansTask kmeansTask= new KmeansTask(actvitiyContext,phHueSDK,selected_bitmap,NORMAL);
+          kmeansTask.execute();
         }
 
       }
@@ -106,8 +113,10 @@ public class ColorDetectActivity extends Activity {
         aniSet.addAnimation(alpha);
         ((Button)findViewById(R.id.okbutton01_sec)).startAnimation(aniSet);
         if (selected_bitmap != null) {
-          KnnTask2 task = new KnnTask2();
-          task.execute();
+//          KnnTask2 task = new KnnTask2();
+//          task.execute();
+          KmeansTask kmeansTask= new KmeansTask(actvitiyContext,phHueSDK,selected_bitmap,PARANOMA);
+          kmeansTask.execute();
         }
 
       }
