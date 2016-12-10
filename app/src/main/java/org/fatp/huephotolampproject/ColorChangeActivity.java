@@ -7,15 +7,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.philips.lighting.hue.listener.PHLightListener;
-import com.philips.lighting.hue.sdk.PHHueSDK;
-import com.philips.lighting.hue.sdk.utilities.PHUtilities;
-import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHBridgeResource;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
-import com.philips.lighting.model.PHLightState;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -311,6 +308,8 @@ public class ColorChangeActivity extends Activity {
         Rgb rgb = new Rgb(red, green, blue);
         rgbs.add(rgb);
         hueManager.requestColorChange(rgbs);
+        Toast.makeText(getApplicationContext(),"색깔 변경에 성공하였습니다.", Toast.LENGTH_SHORT).show();
+
 
       }
     });
@@ -412,5 +411,6 @@ public class ColorChangeActivity extends Activity {
     LinkedList<Rgb> rgbs = new LinkedList<>();
     rgbs.add(rgb);
     hueManager.requestColorChange(rgbs);
+    Toast.makeText(getApplicationContext(),"색깔 변경에 성공하였습니다.", Toast.LENGTH_SHORT).show();
   }
 }
