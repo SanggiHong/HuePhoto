@@ -116,7 +116,6 @@ public class ColorDetectActivity extends Activity {
     btn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
         intent.setData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);

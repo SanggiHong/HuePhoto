@@ -40,7 +40,7 @@
       android:layout_height="wrap_content"
       android:text="연 결 설 정"
       android:textSize="30dp"
-      android:id="@+id/callBtn"
+      android:id="@+id/enter_manual_setting"
       android:layout_gravity="center_horizontal" />
 
 </LinearLayout>
