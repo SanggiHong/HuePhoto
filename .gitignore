@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.iml
 .gradle
 /local.properties
@@ -5,3 +6,20 @@
 .DS_Store
 /build
 /captures
+=======
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+.project
+.gradle
+*.iml
+.idea/
+build/
+>>>>>>> 23681c49e52d3e7e9fd06c2e0a8aed0f28ff02e6

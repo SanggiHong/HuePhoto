@@ -77,7 +77,7 @@ import ml.Rgb;
  */
 public class ColorDetectWithKeywordActivity extends Activity {
 
-  private static final String CLOUD_VISION_API_KEY = "AIzaSyAbyA-u-ZNw01KFWzAKoLBgXLN1HPEiHqE";
+  private static final String CLOUD_VISION_API_KEY = "AIzaSyDRKw0iBD2rfFic_HqUUQZKY-tBLfdc87E";
   private static final String TAG = "SelectActivity2";
   private final int KMEANS_ITER = 10;
   private PHHueSDK phHueSDK;

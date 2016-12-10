@@ -28,7 +28,7 @@ import java.util.List;
  * Created by corona10 on 2016. 6. 25..
  */
 public class BridgeSettingActivity extends Activity implements OnItemClickListener {
-  private PHHueSDK phHueSDK;
+  private HueManager hueManager;
   public static final String TAG = "QuickStart";
   private HueSharedPreferences prefs;
   private AccessPointListAdapter adapter;
@@ -43,12 +43,12 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
 
       PHWizardAlertDialog.getInstance().closeProgressDialog();
       if (accessPoint != null && accessPoint.size() > 0) {
-        phHueSDK.getAccessPointsFound().clear();
-        phHueSDK.getAccessPointsFound().addAll(accessPoint);
+        hueManager.getPhHueSDK().getAccessPointsFound().clear();
+        hueManager.getPhHueSDK().getAccessPointsFound().addAll(accessPoint);
         runOnUiThread(new Runnable() {
           @Override
           public void run() {
-            adapter.updateData(phHueSDK.getAccessPointsFound());
+            adapter.updateData(hueManager.getPhHueSDK().getAccessPointsFound());
           }
         });
       }
@@ -61,9 +61,9 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
 
     @Override
     public void onBridgeConnected(PHBridge b, String username) {
-      phHueSDK.setSelectedBridge(b);
-      phHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
-      phHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration() .getIpAddress(), System.currentTimeMillis());
+      hueManager.getPhHueSDK().setSelectedBridge(b);
+      hueManager.getPhHueSDK().enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
+      hueManager.getPhHueSDK().getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration() .getIpAddress(), System.currentTimeMillis());
       prefs.setLastConnectedIPAddress(b.getResourceCache().getBridgeConfiguration().getIpAddress());
       prefs.setUsername(username);
       PHWizardAlertDialog.getInstance().closeProgressDialog();
@@ -73,7 +73,7 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
     @Override
     public void onAuthenticationRequired(PHAccessPoint accessPoint) {
       Log.w(TAG, "Authentication Required.");
-      phHueSDK.startPushlinkAuthentication(accessPoint);
+      hueManager.getPhHueSDK().startPushlinkAuthentication(accessPoint);
       startActivity(new Intent(BridgeSettingActivity.this, PHPushlinkActivity.class));
     }
 
@@ -83,11 +83,11 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
         return;
       }
       Log.v(TAG, "onConnectionResumed" + bridge.getResourceCache().getBridgeConfiguration().getIpAddress());
-      phHueSDK.getLastHeartbeat().put(bridge.getResourceCache().getBridgeConfiguration().getIpAddress(),  System.currentTimeMillis());
-      for (int i = 0; i < phHueSDK.getDisconnectedAccessPoint().size(); i++) {
+      hueManager.getPhHueSDK().getLastHeartbeat().put(bridge.getResourceCache().getBridgeConfiguration().getIpAddress(),  System.currentTimeMillis());
+      for (int i = 0; i < hueManager.getPhHueSDK().getDisconnectedAccessPoint().size(); i++) {
 
-        if (phHueSDK.getDisconnectedAccessPoint().get(i).getIpAddress().equals(bridge.getResourceCache().getBridgeConfiguration().getIpAddress())) {
-          phHueSDK.getDisconnectedAccessPoint().remove(i);
+        if (hueManager.getPhHueSDK().getDisconnectedAccessPoint().get(i).getIpAddress().equals(bridge.getResourceCache().getBridgeConfiguration().getIpAddress())) {
+          hueManager.getPhHueSDK().getDisconnectedAccessPoint().remove(i);
         }
       }
     }
@@ -95,8 +95,8 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
     @Override
     public void onConnectionLost(PHAccessPoint accessPoint) {
       Log.v(TAG, "onConnectionLost : " + accessPoint.getIpAddress());
-      if (!phHueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
-        phHueSDK.getDisconnectedAccessPoint().add(accessPoint);
+      if (!hueManager.getPhHueSDK().getDisconnectedAccessPoint().contains(accessPoint)) {
+        hueManager.getPhHueSDK().getDisconnectedAccessPoint().add(accessPoint);
       }
     }
 
@@ -122,8 +122,8 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
       }
       else if (code == PHMessageType.BRIDGE_NOT_FOUND) {
         if (!lastSearchWasIPScan) {  // Perform an IP Scan (backup mechanism) if UPNP and Portal Search fails.
-          phHueSDK = PHHueSDK.getInstance();
-          PHBridgeSearchManager sm = (PHBridgeSearchManager) phHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
+          hueManager.setPhHueSDK( PHHueSDK.getInstance());
+          PHBridgeSearchManager sm = (PHBridgeSearchManager) hueManager.getPhHueSDK().getSDKService(PHHueSDK.SEARCH_BRIDGE);
           sm.search(false, false, true);
           lastSearchWasIPScan=true;
         }
@@ -154,7 +154,7 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
 
     // Try to automatically connect to the last known bridge.  For first time use this will be empty so a bridge search is automatically started.
     prefs = HueSharedPreferences.getInstance(getApplicationContext());
-
+    hueManager = hueManager.create();
     dialog = new Dialog(this);
     dialog.setContentView(R.layout.dialog_manual_setting);
     dialog.setTitle("UserSetting");
@@ -169,9 +169,9 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
                 lastAccessPoint.setIpAddress(prefs.getLastConnectedIPAddress());
                 lastAccessPoint.setUsername(prefs.getUsername());
 
-                if (!phHueSDK.isAccessPointConnected(lastAccessPoint)) {
+                if (!hueManager.getPhHueSDK().isAccessPointConnected(lastAccessPoint)) {
                     PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, BridgeSettingActivity.this);
-                    phHueSDK.connect(lastAccessPoint);
+                  hueManager.getPhHueSDK().connect(lastAccessPoint);
                 }
             }
             dialog.dismiss();
@@ -185,23 +185,21 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
       }
     });
 
-    phHueSDK = PHHueSDK.create();  // Gets an instance of the Hue SDK.
-    phHueSDK.getNotificationManager().registerSDKListener(listener);  // Register the PHSDKListener to receive callbacks from the bridge.
-    adapter = new AccessPointListAdapter(getApplicationContext(), phHueSDK.getAccessPointsFound());
+    hueManager.getPhHueSDK().getNotificationManager().registerSDKListener(listener);  // Register the PHSDKListener to receive callbacks from the bridge.
+    adapter = new AccessPointListAdapter(getApplicationContext(), hueManager.getPhHueSDK().getAccessPointsFound());
 
     ListView accessPointList = (ListView) findViewById(R.id.bridge_list);
     accessPointList.setOnItemClickListener(this);
     accessPointList.setAdapter(adapter);
 
     if (isHistoryExist()) {
-      phHueSDK = PHHueSDK.create();
       PHAccessPoint lastAccessPoint = new PHAccessPoint();
       lastAccessPoint.setUsername(prefs.getUsername());
       lastAccessPoint.setIpAddress(prefs.getLastConnectedIPAddress());
 
-      if (!phHueSDK.isAccessPointConnected(lastAccessPoint)) {
+      if (!hueManager.getPhHueSDK().isAccessPointConnected(lastAccessPoint)) {
         PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, getApplicationContext());
-        phHueSDK.connect(lastAccessPoint);
+        hueManager.getPhHueSDK().connect(lastAccessPoint);
       }
     } else {
       showBridgeList();
@@ -240,30 +238,30 @@ public class BridgeSettingActivity extends Activity implements OnItemClickListen
   public void onDestroy() {
     super.onDestroy();
     if (listener !=null) {
-      phHueSDK.getNotificationManager().unregisterSDKListener(listener);
+      hueManager.getPhHueSDK().getNotificationManager().unregisterSDKListener(listener);
     }
-    phHueSDK.disableAllHeartbeat();
+    hueManager.getPhHueSDK().disableAllHeartbeat();
   }
 
   @Override
   public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
     PHAccessPoint accessPoint = (PHAccessPoint) adapter.getItem(position);
-    PHBridge connectedBridge = phHueSDK.getSelectedBridge();
+    PHBridge connectedBridge = hueManager.getPhHueSDK().getSelectedBridge();
 
     if (connectedBridge != null) {
       String connectedIP = connectedBridge.getResourceCache().getBridgeConfiguration().getIpAddress();
       if (connectedIP != null) {   // We are already connected here:-
-        phHueSDK.disableHeartbeat(connectedBridge);
-        phHueSDK.disconnect(connectedBridge);
+        hueManager.getPhHueSDK().disableHeartbeat(connectedBridge);
+        hueManager.getPhHueSDK().disconnect(connectedBridge);
       }
     }
     PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, BridgeSettingActivity.this);
-    phHueSDK.connect(accessPoint);
+    hueManager.getPhHueSDK().connect(accessPoint);
   }
 
   public void showBridgeList() {
     PHWizardAlertDialog.getInstance().showProgressDialog(R.string.search_progress, BridgeSettingActivity.this);
-    PHBridgeSearchManager sm = (PHBridgeSearchManager) phHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
+    PHBridgeSearchManager sm = (PHBridgeSearchManager) hueManager.getPhHueSDK().getSDKService(PHHueSDK.SEARCH_BRIDGE);
     // Start the UPNP Searching of local bridges.
     sm.search(true, true);
   }
