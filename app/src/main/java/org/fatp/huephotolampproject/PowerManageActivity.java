@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.model.PHBridge;
@@ -64,5 +65,6 @@ public class PowerManageActivity extends Activity {
     }else {
       hueManager.powerOff();
     }
+    Toast.makeText(getApplicationContext(),"전원 변경에 성공하였습니다.", Toast.LENGTH_SHORT).show();
   }
 }
