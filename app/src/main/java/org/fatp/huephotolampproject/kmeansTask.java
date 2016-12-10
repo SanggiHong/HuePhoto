@@ -24,10 +24,6 @@ import ml.Rgb;
 
 import static android.content.Context.ACTIVITY_SERVICE;
 
-/**
- * Created by withGod on 2016. 12. 10..
- */
-
 public class KmeansTask extends AsyncTask<Void, Void, Void> {
     private Bitmap bitmap;
     private final int KMEANS_ITER = 10;
@@ -40,7 +36,7 @@ public class KmeansTask extends AsyncTask<Void, Void, Void> {
 
 
 
-    public KmeansTask(Context context,PHHueSDK phHueSDK, Bitmap bitmap, int mode) {
+    public KmeansTask(Context context, PHHueSDK phHueSDK, Bitmap bitmap, int mode) {
         this.context=context;
         this.phHueSDK=phHueSDK;
         this.bitmap=bitmap;
