@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.model.PHBridge;
@@ -14,26 +15,20 @@ import com.philips.lighting.model.PHLightState;
 
 import java.util.List;
 
-
-/**
- * Created by HamHyunWoong on 2016-06-23.
- */
 public class PowerManageActivity extends Activity {
 
   boolean toggle = false;
-  private PHHueSDK phHueSDK;
   private HueManager hueManager;
 
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_power_manage);
-    phHueSDK = PHHueSDK.create();
+    hueManager = hueManager.create();
     final ImageView lampView = (ImageView) findViewById(R.id.lampimage);
     Button btn = (Button) findViewById(R.id.powerbutton);
-    PHBridge bridge = phHueSDK.getSelectedBridge();
-    List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+    List<PHLight> allLights = hueManager.getAllLights();
     for (PHLight light : allLights) {
-      if(!light.getLastKnownLightState().isOn())
+      if(!hueManager.requestPowerState(light))
       {
         toggle = false;
         lampView.setVisibility(View.INVISIBLE);
@@ -59,31 +54,17 @@ public class PowerManageActivity extends Activity {
   }
 
   protected void onDestroy() {
-    PHBridge bridge = phHueSDK.getSelectedBridge();
-    if (bridge != null) {
-      if (phHueSDK.isHeartbeatEnabled(bridge)) {
-        phHueSDK.disableHeartbeat(bridge);
-      }
-      phHueSDK.disconnect(bridge);
-      super.onDestroy();
-    }
+    super.onDestroy();
+    hueManager.release();
   }
 
   private void turnOnLights(boolean isOn) {
-    PHBridge bridge = phHueSDK.getSelectedBridge();
-
-    List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-    PHLightState lightState = new PHLightState();
-    lightState.setOn(isOn);
-    bridge.setLightStateForDefaultGroup(lightState);
-  }
-
-  private Boolean isServiceRunning(String serviceName) {
-    ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-    for (ActivityManager.RunningServiceInfo runningServiceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
-      if (serviceName.equals(runningServiceInfo.service.getClassName()))
-        return true;
+    if(isOn)
+    {
+      hueManager.powerOn();
+    }else {
+      hueManager.powerOff();
     }
-    return false;
+    Toast.makeText(getApplicationContext(),"전원 변경에 성공하였습니다.", Toast.LENGTH_SHORT).show();
   }
 }
