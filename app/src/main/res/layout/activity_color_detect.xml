@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#000000"
+    android:id="@+id/selectmode1"
+    >
+
+    <ImageView
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:id="@+id/imageview1"
+        android:src="@drawable/ic_done_black_48dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="이미지 찾기"
+        android:textColor="#eeeeee"
+        android:background="#00bcd4"
+        android:textSize="40dp"
+        android:id="@+id/selectimagebtn"
+        android:layout_above="@+id/linearLayout2"
+        android:layout_centerHorizontal="true" />
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+
+
+        android:id="@+id/linearLayout2">
+        <Button
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:textColor="#eeeeee"
+            android:background="#00bcd4"
+            android:text="노  멀"
+            android:textSize="20dp"
+            android:layout_margin="5dp"
+            android:id="@+id/okbutton01"
+            android:layout_below="@+id/selectimagebtn"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:text="파노라마"
+            android:textColor="#eeeeee"
+            android:background="#00bcd4"
+            android:layout_margin="5dp"
+            android:textSize="20dp"
+            android:id="@+id/okbutton01_sec"
+            android:layout_below="@+id/selectimagebtn"
+            android:layout_centerHorizontal="true" />
+
+
+    </LinearLayout>
+</RelativeLayout>

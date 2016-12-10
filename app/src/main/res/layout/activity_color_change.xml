@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#000000"
+    >
+
+
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true">
+
+        <TableRow>
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn01"
+                android:background="#e51c23"
+                />
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn02"
+                android:background="#9c27b0"
+                />
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn03"
+                android:background="#4a148c"
+                />
+        </TableRow>
+        <TableRow>
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:background="#00bcd4"
+                android:id="@+id/colorbtn04"
+                />
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn05"
+                android:background="#8bc34a"
+                />
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn06"
+                android:background="#cddc39"
+                />
+        </TableRow>
+        <TableRow>
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn07"
+                android:background="#ffeb3b"
+                />
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn08"
+                android:background="#ff9800"
+                />
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn09"
+                android:background="#eeeeee"
+                />
+        </TableRow>
+        <TableRow>
+
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn11"
+                android:background="#9575cd"
+                />
+
+            <Button
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn10"
+                android:background="#ffcc80"
+                android:text="Ran"
+                android:textColor="#000000"
+                android:textSize="30dp"
+                />
+
+            <ImageButton
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:id="@+id/colorbtn12"
+                android:background="#f06e92"
+                />
+        </TableRow>
+
+    </TableLayout>
+
+
+
+
+
+
+</RelativeLayout>

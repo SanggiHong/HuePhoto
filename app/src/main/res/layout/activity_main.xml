@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#3b50ce"
+    android:id="@+id/mainlayout">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hue 포토랜턴"
+        android:textSize="40dp"
+        android:id="@+id/textview1"
+        android:textColor="#cddc39"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="45dp" />
+
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:id="@+id/tableLayout"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="65dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true">
+
+        <TableRow>
+            <ImageButton
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_margin="5dp"
+                android:background="#ff5722"
+                android:id="@+id/enter_color_detect"
+                android:src="@drawable/ic_collections_grey600_24dp"
+                android:text="1" />
+
+            <ImageButton
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_margin="5dp"
+                android:background="#00bcd4"
+                android:id="@+id/enter_color_detect_with_keyword"
+                android:src="@drawable/ic_camera_black_36dp"
+                android:text="2" />
+        </TableRow>
+        <TableRow>
+            <ImageButton
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_margin="5dp"
+                android:background="#259b24"
+                android:id="@+id/enter_color_change"
+                android:src="@drawable/ic_color_lens_grey600_36dp"
+                android:text="3" />
+
+            <ImageButton
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_margin="5dp"
+                android:background="#ffb23b"
+                android:id="@+id/enter_power_manage"
+                android:src="@drawable/power2"
+                android:text="4" />
+        </TableRow>
+    </TableLayout>
+</RelativeLayout>

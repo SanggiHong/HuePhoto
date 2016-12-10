@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="org.fatp.huephotolampproject">
+
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+  <application
+      android:allowBackup="true"
+      android:icon="@drawable/mainicon"
+      android:label="Hue 포토랜턴"
+      android:supportsRtl="true"
+      android:theme="@style/AppTheme">
+    <activity
+        android:name=".PHHomeActivity"
+        android:screenOrientation="portrait">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+    <activity
+        android:name=".ColorDetectActivity"
+        android:screenOrientation="portrait"/>
+    <activity
+        android:name=".ColorDetectWithKeywordActivity"
+        android:screenOrientation="portrait"/>
+    <activity
+        android:name=".ColorChangeActivity"
+        android:screenOrientation="portrait"/>
+    <activity
+        android:name=".PowerManageActivity"
+        android:screenOrientation="portrait"/>
+    <activity
+        android:name=".MainActivity"
+        android:screenOrientation="portrait"/>
+    <activity
+        android:name=".PHPushlinkActivity"
+        android:screenOrientation="portrait"/>
+    <service
+        android:name=".PanoramaBackground"
+        android:enabled="true"
+        android:exported="true">
+    </service>
+  </application>
+
+</manifest>
