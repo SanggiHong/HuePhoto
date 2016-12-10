@@ -190,7 +190,7 @@ public class ColorDetectActivity extends Activity {
     }
     return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, false);
   }
-  public class KmeansTask extends AsyncTask<Void, Void, Void> {
+  private class KmeansTask extends AsyncTask<Void, Void, Void> {
     private Bitmap bitmap;
     private final int KMEANS_ITER = 10;
     private PHHueSDK phHueSDK;
@@ -213,6 +213,11 @@ public class ColorDetectActivity extends Activity {
       PHBridge bridge = phHueSDK.getSelectedBridge();
 
       List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+      colorDetect(image_bitmap, bridge, allLights);
+      return null;
+    }
+
+    private void colorDetect(Bitmap image_bitmap, PHBridge bridge, List<PHLight> allLights) {
       Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
       kmean.initCLusters();
       kmean.startKmeans();
@@ -225,7 +230,6 @@ public class ColorDetectActivity extends Activity {
       else{
         rgb_list_paranomal = new ArrayList<Rgb>(Arrays.asList(kmean.getClusters()));
       }
-      return null;
     }
 
     private void doNormalKmeans(PHBridge bridge, List<PHLight> allLights, Rgb[] rgb_list) {

@@ -194,9 +194,7 @@ public class ColorDetectWithKeywordActivity extends Activity {
     private  ArrayList<Rgb>  rgb_list_paranomal;
 
 
-
-
-    public KmeansTask(PHHueSDK phHueSDK,Bitmap bitmap, int mode) {
+    private KmeansTask(PHHueSDK phHueSDK,Bitmap bitmap, int mode) {
       this.phHueSDK=phHueSDK;
       this.bitmap=bitmap;
       this.mode=mode;
@@ -206,12 +204,15 @@ public class ColorDetectWithKeywordActivity extends Activity {
     protected Void doInBackground(Void... params) {
       Bitmap image_bitmap = this.bitmap;
       PHBridge bridge = phHueSDK.getSelectedBridge();
-
       List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+      colorDetect(image_bitmap, bridge, allLights);
+      return null;
+    }
+
+    private void colorDetect(Bitmap image_bitmap, PHBridge bridge, List<PHLight> allLights) {
       Kmeans kmean = new Kmeans(KMEANS_ITER, allLights.size(), image_bitmap);
       kmean.initCLusters();
       kmean.startKmeans();
-
 
       if(isNormal()) {
         Rgb[] rgb_list = kmean.getClusters();
@@ -220,7 +221,6 @@ public class ColorDetectWithKeywordActivity extends Activity {
       else{
         rgb_list_paranomal = new ArrayList<Rgb>(Arrays.asList(kmean.getClusters()));
       }
-      return null;
     }
 
     private void doNormalKmeans(PHBridge bridge, List<PHLight> allLights, Rgb[] rgb_list) {
