@@ -17,16 +17,15 @@ import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLightState;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import ml.Rgb;
 
-/**
- * Created by HamHyunWoong on 2016-06-23.
- */
 public class ColorChangeActivity extends Activity {
-  private PHHueSDK phHueSDK;
+  private HueManager hueManager;
   private boolean isAreadyClicked = false;
   private final String TAG = "ColorChangeActivity";
   private static final int MAX_HUE = 65535;
@@ -49,9 +48,7 @@ public class ColorChangeActivity extends Activity {
     final ImageButton colorbtn12 = (ImageButton) findViewById(R.id.colorbtn12);
 
 
-    phHueSDK = PHHueSDK.create();
-    // final PHBridge bridge = phHueSDK.getSelectedBridge();
-    // final List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+    hueManager = hueManager.create();
 
     colorbtn01.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -307,22 +304,13 @@ public class ColorChangeActivity extends Activity {
         colorbtn11.setImageResource(0);
         colorbtn12.setImageResource(0);
 
-        PHBridge bridge = phHueSDK.getSelectedBridge();
-
         int red = new Random().nextInt(256);
         int green = new Random().nextInt(256);
         int blue = new Random().nextInt(256);
-
-        List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-        for (PHLight light : allLights) {
-          float xy[] = PHUtilities.calculateXYFromRGB(red, green, blue, light.getModelNumber());
-          PHLightState lightState = new PHLightState();
-          lightState.setOn(true);
-          lightState.setX(xy[0]);
-          lightState.setY(xy[1]);
-          bridge.updateLightState(light, lightState, listener);
-        }
-
+        LinkedList<Rgb> rgbs = new LinkedList<Rgb>();
+        Rgb rgb = new Rgb(red, green, blue);
+        rgbs.add(rgb);
+        hueManager.requestColorChange(rgbs);
 
       }
     });
@@ -410,34 +398,19 @@ public class ColorChangeActivity extends Activity {
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    PHBridge bridge = phHueSDK.getSelectedBridge();
-    if (bridge != null) {
-      if (phHueSDK.isHeartbeatEnabled(bridge)) {
-        phHueSDK.disableHeartbeat(bridge);
-      }
-      phHueSDK.disconnect(bridge);
-
-    }
+    hueManager.release();
   }
 
   private void changeColor(ImageButton colorbtn) {
     ColorDrawable buttonColor = (ColorDrawable) colorbtn.getBackground();
 
-    PHBridge bridge = phHueSDK.getSelectedBridge();
     int color = buttonColor.getColor();
     int red = (color >> 16) & 0xFF;
     int green = (color >> 8) & 0xFF;
     int blue = (color >> 0) & 0xFF;
-
-    List<PHLight> allLights = bridge.getResourceCache().getAllLights();
-    if(allLights.size() > 0)
-    {
-      PHLightState lightState = new PHLightState();
-      float xy[] = PHUtilities.calculateXYFromRGB(red, green, blue, allLights.get(0).getModelNumber());
-      lightState.setOn(true);
-      lightState.setX(xy[0]);
-      lightState.setY(xy[1]);
-      bridge.setLightStateForDefaultGroup(lightState);
-    }
+    Rgb rgb = new Rgb(red, green, blue);
+    LinkedList<Rgb> rgbs = new LinkedList<>();
+    rgbs.add(rgb);
+    hueManager.requestColorChange(rgbs);
   }
 }
