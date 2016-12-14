@@ -1,9 +1,5 @@
 package org.fatp.huephotolampproject;
 
-/**
- * Created by corona10 on 2016. 6. 25..
- */
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;

@@ -24,9 +24,6 @@ import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHHueParsingError;
 import java.util.List;
 
-/**
- * Created by corona10 on 2016. 6. 25..
- */
 public class BridgeSettingActivity extends Activity implements OnItemClickListener {
   private HueManager hueManager;
   public static final String TAG = "QuickStart";
