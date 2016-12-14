@@ -23,7 +23,7 @@
     <string name="searching_for_bridges">Searching for Bridges</string>
     <string name="txt_selectbridges">Available Access Points</string>
     <string name="txt_pushlink">Pushlink</string>
-    <string name="press_pushlink_button">Press the link button on the bridge</string>
+    <string name="press_pushlink_button">휴 브릿지 버튼을 눌러주세요</string>
     <string name="txt_select_smartbridge">Please select a bridge to use for this app</string>
     <string name="txt_last_heartbeat">Last Heartbeat : </string>
 </resources>
