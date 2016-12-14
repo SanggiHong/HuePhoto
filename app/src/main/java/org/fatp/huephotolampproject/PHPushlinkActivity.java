@@ -1,9 +1,5 @@
 package org.fatp.huephotolampproject;
 
-/**
- * Created by corona10 on 2016. 6. 25..
- */
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -18,13 +14,6 @@ import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueParsingError;
 
 import java.util.List;
-
-/**
- * Activity which gives hint for manual pushlink. needs to add <activity
- * android:theme="@android:style/Theme.Dialog" /> in manifest file
- *
- *
- */
 
 public class PHPushlinkActivity extends Activity {
   private ProgressBar pbar;
@@ -106,7 +95,7 @@ public class PHPushlinkActivity extends Activity {
 
       }
 
-    } // End of On Error
+    }
 
     @Override
     public void onParsingErrors(List<PHHueParsingError> parsingErrorsList) {}

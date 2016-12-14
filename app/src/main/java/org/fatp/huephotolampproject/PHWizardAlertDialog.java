@@ -1,8 +1,5 @@
 package org.fatp.huephotolampproject;
 
-/**
- * Created by corona10 on 2016. 6. 25..
- */
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -10,12 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.view.WindowManager;
-
-/**
- * Generic class for Alert and Progress dialogs wizard
- *
- *
- */
 
 public final class PHWizardAlertDialog {
   private ProgressDialog pdialog;
@@ -45,9 +36,6 @@ public final class PHWizardAlertDialog {
       alert.show();
   }
 
-  /**
-   * Stops running progress-bar
-   */
   public void closeProgressDialog() {
     if (pdialog != null) {
       pdialog.dismiss();
@@ -55,24 +43,12 @@ public final class PHWizardAlertDialog {
     }
   }
 
-  /**
-   * Shows progress-bar
-   *
-   * @param resID
-   * @param act
-   */
   public void showProgressDialog(int resID, Context ctx) {
     String message = ctx.getString(resID);
     pdialog = ProgressDialog.show(ctx, null, message, true, true);
     pdialog.setCancelable(false);
   }
 
-  /**
-   *
-   * @param activityContext
-   * @param msg
-   * @param btnNameResId
-   */
   public static void showAuthenticationErrorDialog(
       final Activity activityContext, String msg, int btnNameResId) {
     AlertDialog.Builder builder = new AlertDialog.Builder(activityContext);
